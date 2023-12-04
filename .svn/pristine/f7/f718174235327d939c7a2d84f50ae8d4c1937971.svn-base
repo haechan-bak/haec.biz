@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="jqBoardMapper">
+
+	<!-- 게시판 목록 건수 조회 -->
+	<select id="boardListCnt" parameterType="jqBoardVO" resultType="int">
+	
+		/* jqBoardMapper - boardListCnt (게시판 목록 건수 조회) */
+		SELECT 
+			COUNT(*)
+		FROM  TB_JQ_BRD_INFO A
+			, TB_JQ_MEM_INFO B
+		WHERE A.BRD_WRITER = B.MEM_ID
+			AND BRD_DEL_YN = 'N'
+		<if test='searchType != "" and searchType.equals("wrt")'>
+			AND MEM_NM = #{searchText}
+		</if>
+		<if test='searchType != "" and searchType.equals("sbj")'>
+			AND BRD_SUBJECT LIKE '%' || #{searchText} || '%'
+		</if>
+		
+	</select>
+	
+	<!-- 게시판 목록 조회 -->
+	<select id="boardListSearch" parameterType="jqBoardVO" resultType="jqBoardVO">
+	
+		/* jqBoardMapper - boardListSearch (게시판 목록 조회) */
+    	SELECT 
+    		AA.* 
+    	FROM
+    		(
+			SELECT 
+				   BRD_SEQ 
+				 , BRD_SUBJECT 
+				 , BRD_CONTENT 
+	             , BRD_WRITER
+	             , B.MEM_NM AS BRD_WRITER_NM
+	             , BRD_HIT_CNT 
+	             , BRD_DEL_YN 
+	             , BRD_INS_ID 
+	             , BRD_INS_DT
+	             , BRD_UPD_ID 
+	             , BRD_UPD_DT
+	             , ROW_NUMBER() OVER(ORDER BY BRD_SEQ DESC) AS RNUM
+	        FROM  TB_JQ_BRD_INFO A
+				, TB_JQ_MEM_INFO B
+	        WHERE A.BRD_WRITER = B.MEM_ID
+	        	AND BRD_DEL_YN = 'N'
+	        <if test='searchType != "" and searchType.equals("wrt")'>
+				AND MEM_NM = #{searchText}
+			</if>
+			<if test='searchType != "" and searchType.equals("sbj")'>
+				AND BRD_SUBJECT LIKE '%' || #{searchText} || '%'
+			</if>
+	        ORDER BY BRD_SEQ
+	        ) AA
+		WHERE 1=1
+			<![CDATA[
+			AND AA.RNUM >= #{startNo} 
+			AND AA.RNUM <= #{endNo}
+			]]>
+		ORDER BY AA.BRD_SEQ DESC
+        
+    </select>
+    
+    
+    <!-- 게시글 조회수 증가 -->
+    <update id="boardAddHit" parameterType="jqBoardVO">
+    
+    	/* jqBoardMapper - boardAddHit (게시글 조회수 증가) */
+    	UPDATE TB_JQ_BRD_INFO SET
+    		  BRD_HIT_CNT = NVL(BRD_HIT_CNT, 0) + 1
+    	WHERE BRD_SEQ = #{brdSeq}
+    </update>
+    
+    <!-- 게시글 조회 -->
+    <select id="boardInfo" parameterType="jqBoardVO" resultType="jqBoardVO">
+    
+    	/* jqBoardMapper - boardInfo (게시글 조회) */
+		SELECT 
+			  BRD_SEQ 
+			, BRD_SUBJECT 
+	 		, BRD_CONTENT 
+			, BRD_WRITER
+			, B.MEM_NM AS BRD_WRITER_NM
+			, BRD_HIT_CNT 
+			, BRD_DEL_YN 
+			, BRD_INS_ID 
+			, BRD_INS_DT
+			, BRD_UPD_ID 
+			, BRD_UPD_DT
+ 		FROM  TB_JQ_BRD_INFO A
+ 			, TB_JQ_MEM_INFO B
+ 		WHERE A.BRD_WRITER = B.MEM_ID
+ 			AND BRD_SEQ = #{brdSeq} 
+    </select>
+    
+	<!-- 게시글 저장(등록, 수정, 삭제) -->
+    <update id="boardSave" parameterType="jqBoardVO">
+    
+    	/* jqBoardMapper - boardSave (게시글 등록, 수정, 삭제) */
+    	MERGE INTO TB_JQ_BRD_INFO
+    	USING DUAL
+    	ON ( BRD_SEQ = #{brdSeq} )
+    	WHEN MATCHED THEN
+    		UPDATE SET
+    			  BRD_SUBJECT = #{brdSubject}
+	 			, BRD_CONTENT = #{brdContent}
+	 			, BRD_DEL_YN  = #{brdDelYn}
+    			, BRD_UPD_ID  = #{brdUpdId}
+				, BRD_UPD_DT  = SYSDATE
+    	WHEN NOT MATCHED THEN
+        	INSERT
+				(	
+			  	  BRD_SEQ 
+				, BRD_SUBJECT 
+	 			, BRD_CONTENT 
+				, BRD_WRITER
+				, BRD_HIT_CNT 
+				, BRD_DEL_YN 
+				, BRD_INS_ID 
+				, BRD_INS_DT
+				, BRD_UPD_ID 
+				, BRD_UPD_DT
+			) VALUES (
+			  	  TB_JQ_MEM_SEQ.nextval
+				, #{brdSubject}
+				, #{brdContent}
+				, #{brdWriter}
+				, 0
+				, 'N'
+				, #{brdWriter}
+				, SYSDATE
+				, #{brdWriter}
+				, SYSDATE
+			)
+		
+    </update>
+    
+    <!-- 댓글 등록 -->
+    <insert id="replySave" parameterType="jqReplyVO">
+    
+    	/* jqMemberMapper - replySave (댓글 등록) */
+        INSERT INTO TB_JQ_BRD_REPLY
+		(
+			  RPY_SEQ
+			, RPY_BRD_SEQ
+			, RPY_WRITER
+			, RPY_CONTENT
+			, RPY_DEL_YN
+			, RPY_INS_ID
+			, RPY_INS_DT
+			, RPY_UPD_ID
+			, RPY_UPD_DT
+		) VALUES (
+			  TB_JQ_RPY_SEQ.nextval
+			, #{rpyBrdSeq}
+			, #{rpyUpdId}
+			, #{rpyContent}
+			, 'N'
+			, #{rpyUpdId}
+			, SYSDATE
+			, #{rpyUpdId}
+			, SYSDATE
+		)
+    
+    </insert>
+    
+    <!-- 댓글 조회 -->
+    <select id="replyInfo" parameterType="jqReplyVO" resultType="jqReplyVO">
+    
+    	/* jqBoardMapper - replyInfo (댓글 조회) */
+		SELECT 
+			  RPY_SEQ 
+			, RPY_BRD_SEQ 
+	 		, RPY_WRITER 
+			, RPY_CONTENT
+			, RPY_DEL_YN
+			, RPY_INS_ID 
+			, TO_CHAR(RPY_INS_DT, 'YYYY-MM-DD HH24:MM:SS') AS RPY_INS_DT
+ 		FROM  TB_JQ_BRD_REPLY
+ 		WHERE RPY_DEL_YN = 'N'
+ 			AND RPY_BRD_SEQ = #{rpyBrdSeq}
+ 		ORDER BY RPY_INS_DT DESC
+ 		
+    </select>
+    
+    <!-- 댓글 삭제 -->
+    <update id="replyDelete" parameterType="jqReplyVO">
+    
+    	/* jqMemberMapper - replyDelete (댓글 삭제) */
+        UPDATE TB_JQ_BRD_REPLY SET
+			  RPY_DEL_YN = 'Y'
+			, RPY_UPD_ID = #{rpyUpdId}
+			, RPY_UPD_DT = SYSDATE
+		WHERE RPY_SEQ = #{rpySeq}
+		
+    </update>
+    
+</mapper>

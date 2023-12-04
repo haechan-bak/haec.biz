@@ -1,0 +1,77 @@
+package com.blue.board.vo;
+ 
+public class JqReplyVO {
+	
+	int rpySeq;
+	int rpyBrdSeq;
+	String rpyWriter;
+	String rpyContent;
+	String rpyDelYn;
+    String rpyInsId;
+    String rpyInsDt;
+    String rpyUpdId;
+    String rpyUpdDt;
+	String result;
+	
+	public int getRpySeq() {
+		return rpySeq;
+	}
+	public void setRpySeq(int rpySeq) {
+		this.rpySeq = rpySeq;
+	}
+	public int getRpyBrdSeq() {
+		return rpyBrdSeq;
+	}
+	public void setRpyBrdSeq(int rpyBrdSeq) {
+		this.rpyBrdSeq = rpyBrdSeq;
+	}
+	public String getRpyWriter() {
+		return rpyWriter;
+	}
+	public void setRpyWriter(String rpyWriter) {
+		this.rpyWriter = rpyWriter;
+	}
+	public String getRpyContent() {
+		return rpyContent;
+	}
+	public void setRpyContent(String rpyContent) {
+		this.rpyContent = rpyContent;
+	}
+	public String getRpyDelYn() {
+		return rpyDelYn;
+	}
+	public void setRpyDelYn(String rpyDelYn) {
+		this.rpyDelYn = rpyDelYn;
+	}
+	public String getRpyInsId() {
+		return rpyInsId;
+	}
+	public void setRpyInsId(String rpyInsId) {
+		this.rpyInsId = rpyInsId;
+	}
+	public String getRpyInsDt() {
+		return rpyInsDt;
+	}
+	public void setRpyInsDt(String rpyInsDt) {
+		this.rpyInsDt = rpyInsDt;
+	}
+	public String getRpyUpdId() {
+		return rpyUpdId;
+	}
+	public void setRpyUpdId(String rpyUpdId) {
+		this.rpyUpdId = rpyUpdId;
+	}
+	public String getRpyUpdDt() {
+		return rpyUpdDt;
+	}
+	public void setRpyUpdDt(String rpyUpdDt) {
+		this.rpyUpdDt = rpyUpdDt;
+	}
+	public String getResult() {
+		return result;
+	}
+	public void setResult(String result) {
+		this.result = result;
+	}
+
+}

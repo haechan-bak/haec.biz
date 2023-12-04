@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="boardMapper">
+ 
+	<select id="getBoardCnt" parameterType="boardVO" resultType="int">
+	 
+	    SELECT COUNT(*)
+	    FROM TB_BOARD
+	    WHERE DEL_YN = 'N'
+	 	<if test='searchType != null and searchType != ""'>
+			<if test='searchText != null and searchText != ""'>
+				<if test='searchType == "title"'>
+					AND BOARD_SUBJECT LIKE '%' || ${searchText}  || '%'
+				</if>
+				<if test='searchType == "writer"'>
+					AND BOARD_WRITER LIKE '%' || ${searchText}  || '%'
+				</if>
+			</if>
+		</if>
+	</select>
+ 
+ 
+    <select id="getBoardList" parameterType="boardVO" resultType="boardVO">
+    
+    	SELECT A.* 
+    	FROM (
+	        SELECT BOARD_SEQ 
+	             , BOARD_RE_REF 
+	             , BOARD_RE_LEV 
+	             , BOARD_RE_SEQ 
+	             , BOARD_WRITER 
+	             , BOARD_SUBJECT 
+	             , BOARD_CONTENT 
+	             , BOARD_HITS
+	             , DEL_YN 
+	             , INS_USER_ID
+	             , INS_DATE 
+	             , UPD_USER_ID
+	             , UPD_DATE 
+	             , ROW_NUMBER() OVER(ORDER BY BOARD_SEQ ASC) AS RNUM
+	        FROM TB_BOARD
+	        WHERE DEL_YN = 'N'
+	        ORDER BY BOARD_SEQ) A
+		WHERE 1=1
+			<![CDATA[
+			AND A.RNUM >= #{startNo} 
+			AND A.RNUM <= #{endNo}
+			]]>
+		<if test='searchType != null and searchType != "".toString()'>
+			<if test='searchText != null and searchText != "".toString()'>
+				<if test='searchType == "title"'>
+					AND A.BOARD_SUBJECT LIKE '%' || ${searchText}  || '%'
+				</if>
+				<if test='searchType == "writer"'>
+					AND A.BOARD_WRITER LIKE '%' || ${searchText}  || '%'
+				</if>
+			</if>
+		</if>
+        
+    </select>
+    
+	<update id="updateBoardHits" parameterType="boardVO">
+    
+        UPDATE TB_BOARD 
+           SET BOARD_HITS = BOARD_HITS + 1             
+             , UPD_USER_ID = 'NONMEMBER'
+             , UPD_DATE = SYSDATE
+         WHERE BOARD_SEQ = ${boardSeq}
+    
+    </update>
+    
+    <select id="getBoardDetail" parameterType="boardVO" resultType="boardVO">
+    
+        SELECT BOARD_SEQ 
+             , BOARD_RE_REF 
+             , BOARD_RE_LEV 
+             , BOARD_RE_SEQ 
+             , BOARD_WRITER 
+             , BOARD_SUBJECT 
+             , BOARD_CONTENT 
+             , BOARD_HITS
+             , DEL_YN 
+             , INS_USER_ID
+             , INS_DATE
+             , UPD_USER_ID
+             , UPD_DATE
+        FROM TB_BOARD
+        WHERE BOARD_SEQ = ${boardSeq}
+    
+    </select>
+        
+    <insert id="insertBoard" parameterType="boardVO">
+    
+        INSERT 
+          INTO TB_BOARD 
+             (
+             	  BOARD_SEQ
+                  , BOARD_RE_REF
+                  , BOARD_RE_LEV
+                  , BOARD_RE_SEQ
+                  , BOARD_WRITER
+                  , BOARD_SUBJECT
+                  , BOARD_CONTENT
+                  , INS_USER_ID
+                  , INS_DATE
+                  , UPD_USER_ID
+                  , UPD_DATE
+              ) 
+        VALUES 
+             (
+             	TB_BOARD_SEQ.nextval
+                , 0
+                , 0
+                , 0
+                , #{boardWriter}
+                , #{boardSubject}
+                , #{boardContent}
+                , 'NONMEMBER'
+                , SYSDATE
+                , 'NONMEMBER'
+                , SYSDATE
+              )
+    
+    </insert>
+    
+    <delete id="deleteBoard" parameterType="boardVO">
+    
+        UPDATE TB_BOARD   
+          SET DEL_YN = 'Y' 
+         WHERE BOARD_SEQ = #{boardSeq}
+    
+    </delete>
+    
+    <delete id="updateBoard" parameterType="boardVO">
+    
+        UPDATE TB_BOARD 
+           SET BOARD_SUBJECT = #{boardSubject}
+             , BOARD_CONTENT = #{boardContent}
+             , UPD_USER_ID = 'NONMEMBER'
+             , UPD_DATE = SYSDATE
+         WHERE BOARD_SEQ = #{boardSeq}
+    
+    </delete>
+    
+    <select id="getBoardListApi" parameterType="java.util.Map" resultType="boardVO">
+    
+        SELECT BOARD_SEQ 
+             , BOARD_RE_REF 
+             , BOARD_RE_LEV 
+             , BOARD_RE_SEQ 
+             , BOARD_WRITER 
+             , BOARD_SUBJECT 
+             , BOARD_CONTENT 
+             , BOARD_HITS
+             , DEL_YN 
+             , INS_USER_ID
+             , INS_DATE 
+             , UPD_USER_ID
+             , UPD_DATE 
+             , ROW_NUMBER() OVER(ORDER BY BOARD_SEQ ASC) AS RNUM
+        FROM TB_BOARD
+        WHERE DEL_YN = 'N'
+        <if test='schStartDt != null and schStartDt != "".toString() and schEndDt != null and schEndDt != "".toString()'>
+        	AND TO_CHAR(INS_DATE, 'YYYYMMDD') BETWEEN #{schStartDt} AND #{schEndDt}
+        </if>
+        ORDER BY BOARD_SEQ
+			
+        
+    </select>
+    
+</mapper>

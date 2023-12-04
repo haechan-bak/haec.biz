@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="jqMemberMapper">
+
+	<!-- 회원정보 등록 -->
+    <insert id="memberSave" parameterType="jqMemberVO">
+    
+    	/* jqMemberMapper - memberSave (회원정보 등록) */
+        INSERT INTO TB_JQ_MEM_INFO
+		(
+			  MEM_SEQ
+			, MEM_ID
+			, MEM_NM
+			, MEM_PWD
+			, MEM_USE_YN
+			, MEM_INS_ID
+			, MEM_INS_DT
+			, MEM_UPD_ID
+			, MEM_UPD_DT
+		) VALUES (
+			  TB_JQ_MEM_SEQ.nextval
+			, #{memId}
+			, #{memNm}
+			, #{memPwd}
+			, #{memUseYn}
+			, #{memId}
+			, SYSDATE
+			, #{memId}
+			, SYSDATE
+		)
+    
+    </insert>
+    
+    <!-- 회원정보 수정 -->
+    <update id="memberUpdate" parameterType="jqMemberVO">
+    
+    	/* jqMemberMapper - memberUpdate (회원정보 수정) */
+    	UPDATE TB_JQ_MEM_INFO SET
+    		  MEM_PWD = #{memPwd}
+    		, MEM_USE_YN = #{memUseYn}
+    		, MEM_UPD_ID = #{memId}
+    		, MEM_UPD_DT = SYSDATE
+    	WHERE MEM_ID = #{memId}
+    </update>
+    
+    <!-- 회원정보 조회  -->
+    <select id="memberLogin" parameterType="jqMemberVO" resultType="jqMemberVO">
+    
+    	/* jqMemberMapper - memberLogin (회원정보 조회) */
+    	SELECT
+    		  MEM_ID
+    		, MEM_NM
+    		, MEM_PWD
+    		, MEM_USE_YN
+    	FROM TB_JQ_MEM_INFO
+    	WHERE MEM_ID = #{memId}
+    	<if test='memPwd != ""'>
+    		AND MEM_PWD = #{memPwd}
+    	</if>
+    </select>
+
+</mapper>
